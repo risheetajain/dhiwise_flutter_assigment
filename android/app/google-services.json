@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "194249209010",
+    "project_id": "dhiwise-assignment-task",
+    "storage_bucket": "dhiwise-assignment-task.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194249209010:android:ef2f4393c340af22ab85ab",
+        "android_client_info": {
+          "package_name": "com.example.dhiwise_flutter_assigment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBx9-_f0NYqN4SuNjTMLVXZ8IAgY1oIxw0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
