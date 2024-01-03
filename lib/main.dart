@@ -1,6 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhiwise_flutter_assigment/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_gauges/gauges.dart';
+
+import 'constants/collection.dart';
+import 'constants/decoration.dart';
+import 'screens/login.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,95 +44,274 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const LoginScreen(
+        isLogin: true,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  int currentIndex = 0;
+  int currentDreamIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      backgroundColor: Colors.deepPurpleAccent,
+      body: SafeArea(
+        child: StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection(savingsGoalsCollection)
+                .snapshots(),
+            builder: (_, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting:
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.none:
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.done:
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.active:
+                  final mySnapshots = snapshot.data;
+                  return SingleChildScrollView(
+                    // Center is a layout widget. It takes a single child and positions it
+                    // in the middle of the parent.
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                      child: IndexedStack(
+                        index: currentDreamIndex,
+                        children:
+                            List.generate(mySnapshots!.docs.length, (index) {
+                          final myDream = mySnapshots.docs[index].data();
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SfRadialGauge(
+                                  title: GaugeTitle(
+                                    text: myDream["goal_name"] ?? "",
+                                    textStyle: verylargeTitle,
+                                  ),
+                                  axes: <RadialAxis>[
+                                    RadialAxis(
+                                        minimum: 0,
+                                        maximum: double.parse(
+                                            "${myDream["target_amount"] ?? 0}"),
+                                        labelOffset: 0,
+                                        showLabels: false,
+                                        showTicks: false,
+                                        ranges: [
+                                          GaugeRange(
+                                              startValue: 0,
+                                              endValue: double.parse(
+                                                  "${myDream["current_savings"] ?? 0}"),
+                                              color: Colors.white)
+                                        ],
+                                        majorTickStyle: const MajorTickStyle(
+                                            color: Colors.transparent),
+                                        annotations: <GaugeAnnotation>[
+                                          GaugeAnnotation(
+                                              widget: Column(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.home,
+                                                    size: 100,
+                                                    color: Colors.white,
+                                                  ),
+                                                  Text(
+                                                      "\$ ${myDream["current_savings"] ?? 0}",
+                                                      style: largeTitle),
+                                                  Text('You Saved',
+                                                      style:
+                                                          largeTitle.copyWith(
+                                                              color: Colors.grey
+                                                                  .shade400)),
+                                                ],
+                                              ),
+                                              angle: 90,
+                                              positionFactor: 0.5)
+                                        ])
+                                  ]),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(
+                                    mySnapshots.docs.length,
+                                    (inx) => Icon(
+                                          Icons.circle,
+                                          size: 15,
+                                          color: inx == currentDreamIndex
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.1),
+                                        )),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  RichText(
+                                      text: TextSpan(children: [
+                                    const TextSpan(
+                                        text: "Goal", style: midTitle),
+                                    TextSpan(
+                                        text:
+                                            "\nBy ${myDream["expected_date"]}",
+                                        style: semimidTitle.copyWith(
+                                            color: Colors.grey.shade500))
+                                  ])),
+                                  Text(
+                                    "\$ ${myDream["target_amount"] ?? 0}",
+                                    style: midTitle,
+                                  )
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              Container(
+                                  height: size.height * 0.1,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                      color: Colors.blueGrey,
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text("Need More Savings :",
+                                              style: semimidTitle),
+                                          Text("Monthly Savings Projections :",
+                                              style: semimidTitle),
+                                        ],
+                                      ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "\$ ${(myDream["target_amount"] ?? 0) - myDream["current_savings"] ?? 0}",
+                                            style: semimidTitle,
+                                            textAlign: TextAlign.end,
+                                          ),
+                                          Text(
+                                            "\$ ${calculateMonthlySavings(myDream["target_amount"] ?? 0, myDream["current_savings"] ?? 0, DateFormat("MMM yyyy").parse(myDream["expected_date"])).toStringAsFixed(2)}",
+                                            style: semimidTitle,
+                                            textAlign: TextAlign.right,
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  )),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(30),
+                                        topRight: Radius.circular(30))),
+                                child: Column(
+                                  children: List.generate(
+                                      myDream["contributions_history"].length +
+                                          1, (inx) {
+                                    if (inx == 0) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Contributions",
+                                              style: verylargeTitle.copyWith(
+                                                  color: Colors.black),
+                                            ),
+                                            const Text("View History")
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Amount \$${myDream["contributions_history"][inx - 1]["amount"]}",
+                                            style: semimidTitle.copyWith(
+                                                color: Colors.black),
+                                          ),
+                                          Text(
+                                            myDream["contributions_history"]
+                                                    [inx - 1]["date_time"]
+                                                .toString(),
+                                            style: semimidTitle.copyWith(
+                                                color: Colors.black),
+                                          )
+                                        ],
+                                      );
+                                    }
+                                  }),
+                                ),
+                              )
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+                  );
+                default:
+                  return const Center(
+                    child: Text("Default"),
+                  );
+              }
+            }),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      bottomNavigationBar: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: (value) => setState(() {
+                currentIndex = value;
+              }),
+          selectedItemColor: Colors.deepPurpleAccent,
+          unselectedItemColor: Colors.grey,
+          items: List.generate(
+              4,
+              (index) => const BottomNavigationBarItem(
+                  label: "", icon: Icon(Icons.home)))),
     );
+  }
+
+  double calculateMonthlySavings(
+      num targetGoal, num currentSave, DateTime expectedDate) {
+    num remainSave = targetGoal - currentSave;
+    Duration timeLeft = expectedDate.difference(DateTime.now());
+    double daysPerYear = 365;
+    double monthlySave = remainSave / (timeLeft.inDays / daysPerYear) / 12;
+    return monthlySave;
   }
 }
