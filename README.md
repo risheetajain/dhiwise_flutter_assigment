@@ -4,13 +4,20 @@ A new Flutter project.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+To setup the flutter in your sysytem 
+Dowload SDK :https://docs.flutter.dev/get-started/install
+Setup environment variable
+IDE Setup
 
-A few resources to get you started if this is your first Flutter project:
+You can run the command by flutterrun
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+flutter version :3.16.5
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To see the home page/main page you can either signing or login via following details
+
+Email : risheeta@gmail.com
+Password : 123456
+
+
+
+

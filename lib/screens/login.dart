@@ -1,9 +1,10 @@
-import 'package:dhiwise_flutter_assigment/main.dart';
+import 'package:dhiwise_flutter_assigment/apis/shared_pref.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../apis/firebase_auth.dart';
+import 'home_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.isLogin});
@@ -77,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       .then((val) {
                     Fluttertoast.showToast(msg: val ?? "");
                     if (val == "Successful") {
+                      SharedPref.setLoginStatus();
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                           builder: (context) => const MyHomePage()));
                     }
