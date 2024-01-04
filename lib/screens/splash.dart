@@ -16,8 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     SharedPref.getLoginStatus().then((value) {
-
-
+      print("value $value");
       Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (cotext) =>
               value ? const MyHomePage() : const LoginScreen(isLogin: true)));
